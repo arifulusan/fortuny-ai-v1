@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FORTUNY AI</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Screenshot Kütüphanesi -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <!-- Cartoon Fontları -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Luckiest+Guy&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        popYellow: '#FFD93D',
+                        popRed: '#FF6B6B',
+                        popBlue: '#4D96FF',
+                        popGreen: '#6BCB77',
+                        popPurple: '#845EC2',
+                        popBg: '#FFF5E4',
+                        darkInk: '#2D2D2D'
+                    },
+                    fontFamily: {
+                        title: ['Luckiest Guy', 'cursive'],
+                        body: ['Fredoka', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'comic': '5px 5px 0px 0px #2D2D2D',
+                        'comic-hover': '2px 2px 0px 0px #2D2D2D',
+                        'comic-lg': '8px 8px 0px 0px #2D2D2D',
+                    },
+                    animation: {
+                        'bounce-slow': 'bounce 3s infinite',
+                        'wobble': 'wobble 1s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        wobble: {
+                            '0%, 100%': { transform: 'rotate(-3deg)' },
+                            '50%': { transform: 'rotate(3deg)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #FFF5E4;
+            /* Arka plana çizgi roman noktaları ekleyelim */
+            background-image: radial-gradient(#4D96FF 1.5px, transparent 1.5px);
+            background-size: 25px 25px;
+        }
+
+        /* Renkli Başlık Efekti */
+        .rainbow-text span {
+            display: inline-block;
+            transition: transform 0.2s;
+            text-shadow: 4px 4px 0px #2D2D2D;
+            /* Kalın çizgi roman gölgesi */
+            -webkit-text-stroke: 2px #2D2D2D;
+            /* Siyah dış hat */
+        }
+
+        .rainbow-text:hover span {
+            animation: bounce 0.5s infinite alternate;
+        }
+
+        .rainbow-text span:nth-child(1) {
+            color: #FF6B6B;
+            animation-delay: 0.1s;
+        }
+
+        .rainbow-text span:nth-child(2) {
+            color: #FFD93D;
+            animation-delay: 0.2s;
+        }
+
+        .rainbow-text span:nth-child(3) {
+            color: #4D96FF;
+            animation-delay: 0.3s;
+        }
+
+        .rainbow-text span:nth-child(4) {
+            color: #6BCB77;
+            animation-delay: 0.4s;
+        }
+
+        .rainbow-text span:nth-child(5) {
+            color: #845EC2;
+            animation-delay: 0.5s;
+        }
+
+        .rainbow-text span:nth-child(6) {
+            color: #FF9671;
+            animation-delay: 0.6s;
+        }
+
+        .rainbow-text span:nth-child(7) {
+            color: #FFC75F;
+            animation-delay: 0.7s;
+        }
+
+        .hide-on-shot {
+            display: flex;
+        }
+
+        /* Kart deseni */
+        .cartoon-card {
+            background-color: #ffffff;
+            border: 4px solid #2D2D2D;
+        }
+    </style>
+</head>
+
+<body class="h-screen w-full flex flex-col items-center justify-center overflow-hidden font-body text-darkInk relative">
+    <!-- SAYFA 1: KARŞILAMA EKRANI -->
+    <div id="landing-page" class="flex flex-col items-center justify-center text-center w-full max-w-lg h-full">
+
+        <!-- Tıklanabilir Başlık Alanı -->
+        <div onclick="startTarotReading()"
+            class="cursor-pointer select-none transform transition hover:scale-110 active:scale-90">
+            <h1 class="rainbow-text text-[80px] md:text-[100px] font-title leading-none tracking-wider">
+                <span>F</span><span>O</span><span>R</span><span>T</span><span>U</span><span>N</span><span>Y</span>
+            </h1>
+        </div>
+
+        <div id="tarot-btn-container" onclick="startTarotReading()"
+            class="mt-8 bg-popYellow border-4 border-darkInk px-6 py-3 rounded-full shadow-comic animate-bounce-slow transform rotate-2 cursor-pointer hover:scale-105 transition">
+            <p class="text-xl font-bold tracking-wide">TAROT ÇEK!</p>
+        </div>
+
+        <p class="mt-4 text-sm font-bold opacity-60">Bugün şansına ne çıkacak?</p>
+
+        <div id="cooldown-container"
+            class="hidden flex-col items-center mt-6 bg-white border-4 border-darkInk p-4 rounded-xl shadow-comic">
+            <p class="font-body text-sm text-darkInk mb-2">YENİ KART İÇİN BEKLE:</p>
+            <p class="countdown-timer font-title text-2xl text-popRed">12:00:00</p>
+        </div>
+
+        <!-- Dev Tool: Reset Cooldown -->
+        <button onclick="resetCooldown()"
+            class="fixed bottom-4 right-4 bg-gray-200 text-darkInk font-body text-xs px-2 py-1 rounded opacity-50 hover:opacity-100">
+            RESET TIMER
+        </button>
+    </div>
+
+    <!-- SAYFA 2: FAL SONUCU -->
+    <div id="tarot-page" class="hidden w-full max-w-md flex-col items-center justify-center h-full relative z-20">
+
+        <!-- Back Button -->
+        <button onclick="goHome()"
+            class="absolute top-4 left-4 bg-white border-2 border-darkInk px-3 py-1 rounded font-body text-xs hover:bg-gray-200 z-30">
+            < BACK </button>
+
+                <!-- Hidden Timer (required by startTimer) -->
+                <div id="tarot-page-timer" class="hidden"></div>
+
+                <!-- STATE 1: FACE DOWN CARD -->
+                <div id="face-down-card" onclick="revealCard()"
+                    class="cursor-pointer transform transition hover:scale-105 active:scale-95">
+                    <div
+                        class="cartoon-card w-[300px] h-[480px] bg-darkInk flex flex-col items-center justify-center border-4 border-popYellow shadow-comic rounded-3xl relative overflow-hidden">
+                        <!-- Pattern -->
+                        <div class="absolute inset-0 opacity-10"
+                            style="background-image: radial-gradient(#FFD93D 2px, transparent 2px); background-size: 20px 20px;">
+                        </div>
+
+                        <div class="text-8xl animate-bounce-slow">🔮</div>
+                        <p class="font-title text-2xl text-popYellow mt-8 tracking-wider animate-pulse">KARTA DOKUN</p>
+                    </div>
+                </div>
+
+                <!-- STATE 2: RESULT CARD (Hidden initially) -->
+                <div id="result-card" class="hidden w-full flex-col items-center">
+                    <!-- Paylaşılacak Kart Alanı -->
+                    <div id="capture-area"
+                        class="cartoon-card w-full p-6 rounded-3xl shadow-comic-lg relative text-center bg-white">
+
+                        <!-- Süslemeler -->
+                        <div class="absolute top-4 left-4 w-3 h-3 rounded-full bg-darkInk opacity-20"></div>
+                        <div class="absolute top-4 right-4 w-3 h-3 rounded-full bg-darkInk opacity-20"></div>
+                        <div class="absolute bottom-4 left-4 w-3 h-3 rounded-full bg-darkInk opacity-20"></div>
+                        <div class="absolute bottom-4 right-4 w-3 h-3 rounded-full bg-darkInk opacity-20"></div>
+
+                        <!-- Streak Badge -->
+                        <div
+                            class="absolute -top-4 right-4 bg-popRed border-4 border-darkInk text-white px-3 py-1 rounded-xl font-title text-sm transform rotate-3 shadow-comic z-10">
+                            🔥 <span id="streak-count">1</span> GÜN
+                        </div>
+
+                        <!-- Tarot Image -->
+                        <div
+                            class="relative w-32 h-48 mx-auto mb-4 border-4 border-darkInk rounded-xl overflow-hidden shadow-comic transform -rotate-2 hover:rotate-0 transition">
+                            <img id="card-image" src="" class="w-full h-full object-cover">
+                        </div>
+
+                        <h2 id="card-title" class="text-xl font-title text-popPurple mb-2 tracking-wide">Kart İsmi</h2>
+
+                        <div class="bg-popBg border-2 border-dashed border-darkInk p-3 rounded-xl mb-4">
+                            <p id="fortune-text"
+                                class="text-sm md:text-base font-bold leading-relaxed min-h-[60px] flex items-center justify-center">
+                                Yükleniyor...
+                            </p>
+                        </div>
+
+                        <div class="w-full bg-darkInk h-1 rounded-full mb-3 opacity-10"></div>
+
+                        <div class="flex justify-between items-end">
+                            <div class="text-left">
+                                <p class="text-[8px] font-bold text-gray-400 uppercase">SONRAKİ FAL</p>
+                                <p class="countdown-timer text-lg font-title text-popBlue">--:--:--</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="font-title text-xl text-darkInk tracking-tighter">FORTUNY</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Aksiyon Butonları -->
+                    <div class="flex gap-4 mt-6 w-full hide-on-shot">
+                        <button onclick="copyFortune()"
+                            class="flex-1 bg-popGreen border-4 border-darkInk text-darkInk py-3 rounded-2xl font-title text-lg shadow-comic hover:shadow-comic-hover hover:translate-x-[3px] hover:translate-y-[3px] transition-all flex items-center justify-center gap-2 active:bg-green-400">
+                            KOPYALA
+                        </button>
+                        <button onclick="shareFortune()"
+                            class="flex-1 bg-popBlue border-4 border-darkInk text-white py-3 rounded-2xl font-title text-lg shadow-comic hover:shadow-comic-hover hover:translate-x-[3px] hover:translate-y-[3px] transition-all flex items-center justify-center gap-2 active:bg-blue-500">
+                            PAYLAŞ
+                        </button>
+                    </div>
+                </div>
+    </div>
+
+    <script>
+        // --- DATA ---
+        const CARDS = [
+            { name: "The Fool", file: "the-fool.png" },
+            { name: "The Magician", file: "the-magician.png" },
+            { name: "The High Priestess", file: "the-high-priestess.png" },
+            { name: "The Empress", file: "the-empress.png" }
+        ];
+
+        let isFlipped = false;
+        const COOLDOWN_HOURS = 12;
+
+        window.onload = () => {
+            checkCooldown();
+        };
+
+        function checkCooldown() {
+            const lastDraw = localStorage.getItem('lastTarotDraw');
+            if (lastDraw) {
+                const elapsed = Date.now() - parseInt(lastDraw);
+                const cooldownMs = COOLDOWN_HOURS * 60 * 60 * 1000;
+
+                if (elapsed < cooldownMs) {
+                    // Cooldown active
+                    disableTarotBtn();
+                    startTimer(cooldownMs - elapsed);
+                } else {
+                    enableTarotBtn();
+                }
+            }
+        }
+
+        function disableTarotBtn() {
+            const btn = document.getElementById('tarot-btn-container');
+            btn.classList.add('opacity-50', 'cursor-not-allowed', 'grayscale');
+            btn.classList.remove('animate-bounce-slow', 'hover:scale-105', 'cursor-pointer');
+            btn.onclick = null;
+
+            document.getElementById('cooldown-container').style.display = 'flex';
+        }
+
+        function enableTarotBtn() {
+            const btn = document.getElementById('tarot-btn-container');
+            btn.classList.remove('opacity-50', 'cursor-not-allowed', 'grayscale');
+            btn.classList.add('cursor-pointer', 'animate-bounce-slow', 'hover:scale-105');
+            btn.onclick = startTarotReading;
+
+            document.getElementById('cooldown-container').style.display = 'none';
+        }
+
+        function startTimer(remainingMs) {
+            const timerEls = document.querySelectorAll('.countdown-timer');
+
+            // Show timer on tarot page if active
+            document.getElementById('tarot-page-timer').style.display = 'block';
+
+            const interval = setInterval(() => {
+                remainingMs -= 1000;
+
+                if (remainingMs <= 0) {
+                    clearInterval(interval);
+                    enableTarotBtn();
+                    document.getElementById('tarot-page-timer').style.display = 'none';
+                    return;
+                }
+
+                const h = Math.floor((remainingMs / (1000 * 60 * 60)) % 24);
+                const m = Math.floor((remainingMs / (1000 * 60)) % 60);
+                const s = Math.floor((remainingMs / 1000) % 60);
+
+                const timeString = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                timerEls.forEach(el => el.innerText = timeString);
+            }, 1000);
+        }
+
+        function startTarotReading() {
+            // Check cooldown
+            const lastDraw = localStorage.getItem('lastTarotDraw');
+            if (lastDraw && (Date.now() - parseInt(lastDraw) < COOLDOWN_HOURS * 60 * 60 * 1000)) {
+                // Cooldown Active: Show Feedback
+                const title = document.querySelector('h1');
+                title.style.animation = 'none';
+                title.offsetHeight; /* trigger reflow */
+                title.style.animation = 'wobble 0.5s';
+                alert("Hey! Sabırsızlanma, yarına kadar beklemen lazım! 🕒");
+                return;
+            }
+
+            // 1. Pick Random Card
+            const randomCard = CARDS[Math.floor(Math.random() * CARDS.length)];
+
+            // 2. Setup UI (Pre-load)
+            document.getElementById('card-image').src = `/cards/${randomCard.file}`;
+            document.getElementById('card-title').innerText = randomCard.name;
+            document.getElementById('fortune-text').innerText = "Yıldızlar hizalanıyor...";
+
+            // 3. Switch Pages
+            document.getElementById('landing-page').style.display = 'none';
+            document.getElementById('tarot-page').style.display = 'flex';
+
+            // Reset State
+            document.getElementById('face-down-card').style.display = 'flex';
+            document.getElementById('result-card').style.display = 'none';
+
+            // 4. Fetch Fortune
+            fetchFortune(randomCard.name);
+        }
+
+        function revealCard() {
+            // Save timestamp ONLY when revealed
+            localStorage.setItem('lastTarotDraw', Date.now());
+            checkCooldown();
+
+            const faceDown = document.getElementById('face-down-card');
+            faceDown.classList.add('animate-wobble');
+
+            setTimeout(() => {
+                faceDown.style.display = 'none';
+                const resultCard = document.getElementById('result-card');
+                resultCard.style.display = 'flex';
+                resultCard.classList.add('animate-bounce-slow'); // Entrance animation
+                setTimeout(() => resultCard.classList.remove('animate-bounce-slow'), 1000);
+            }, 500);
+        }
+
+        function copyFortune() {
+            const fortune = document.getElementById('fortune-text').innerText;
+            const title = document.getElementById('card-title').innerText;
+            const text = `🔮 FORTUNY: ${title}\n✨ "${fortune}"\n🔥 fortuny.ai`;
+            navigator.clipboard.writeText(text).then(() => alert("Kopyalandı! Yapıştır bakalım."));
+        }
+
+        function shareFortune() {
+            const captureArea = document.getElementById('capture-area');
+            html2canvas(captureArea, { scale: 2, backgroundColor: null }).then(canvas => {
+                canvas.toBlob(blob => {
+                    if (navigator.canShare && navigator.share) {
+                        const file = new File([blob], "fortuny-fal.png", { type: "image/png" });
+                        navigator.share({ title: 'Fortuny', text: 'Bakalım sana ne çıkacak?', files: [file] }).catch(console.error);
+                    } else {
+                        const link = document.createElement('a');
+                        link.download = 'fortuny-fal.png';
+                        link.href = canvas.toDataURL();
+                        link.click();
+                    }
+                });
+            });
+        }
+
+        function resetCooldown() {
+            localStorage.removeItem('lastTarotDraw');
+            location.reload();
+        }
+
+        async function fetchFortune(cardName) {
+            try {
+                const response = await fetch('/api/tarot-fortune', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ card_name: cardName })
+                });
+                const data = await response.json();
+                document.getElementById('fortune-text').innerText = data.fortune_text;
+            } catch (e) {
+                console.error(e);
+                document.getElementById('fortune-text').innerText = "Evrenin mesajı alınamadı.";
+            }
+        }
+
+        function flipCard() {
+            if (isFlipped) return;
+            document.getElementById('the-card').classList.add('is-flipped');
+            isFlipped = true;
+        }
+
+        function goHome() {
+            document.getElementById('tarot-page').style.display = 'none';
+            document.getElementById('landing-page').style.display = 'flex';
+        }
+    </script>
+</body>
+
+</html>
